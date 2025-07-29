@@ -1,0 +1,203 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: AggregationRouterV6
+    network: mainnet
+    source:
+      address: "0x111111125421cA6dc452d289314280a0f8842A65"
+      abi: AggregationRouterV6
+      startBlock: 19212918
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BitInvalidatorUpdated
+        - EIP712DomainChanged
+        - EpochIncreased
+        - OrderCancelled
+        - OrderFilled
+        - OwnershipTransferred
+        - Paused
+        - Unpaused
+        - Swapped
+        - Swap
+      abis:
+        - name: AggregationRouterV6
+          file: ./abis/AggregationRouterV6.json
+      eventHandlers:
+        - event: BitInvalidatorUpdated(indexed address,uint256,uint256)
+          handler: handleBitInvalidatorUpdated
+        - event: EIP712DomainChanged()
+          handler: handleEIP712DomainChanged
+        - event: EpochIncreased(indexed address,uint256,uint256)
+          handler: handleEpochIncreased
+        - event: OrderCancelled(bytes32)
+          handler: handleOrderCancelled
+        - event: OrderFilled(bytes32,uint256)
+          handler: handleOrderFilled
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Paused(address)
+          handler: handlePaused
+        - event: Unpaused(address)
+          handler: handleUnpaused
+        - event: Swapped(address,address,address,address,address,uint256,uint256)
+          handler: handleSwapped
+      file: ./src/aggregation-router-v-6.ts
+  - kind: ethereum
+    name: OneInchToken
+    network: mainnet
+    source:
+      address: "0x111111111117dC0aa78b770fA6A738034120C302"
+      abi: OneInchToken
+      startBlock: 19212918
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - OneInchTokenOwnershipTransferred
+        - Transfer
+      abis:
+        - name: OneInchToken
+          file: ./abis/OneInchToken.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/one-inch-token.ts
+  - kind: ethereum
+    name: LimitOrderProtocol
+    network: mainnet
+    source:
+      address: "0x3ef51736315F52d568d6D2cf289419b9CfffE782"
+      abi: LimitOrderProtocol
+      startBlock: 19212918
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - NonceIncreased
+        - LimitOrderProtocolOrderFilled
+        - OrderFilledRFQ
+      abis:
+        - name: LimitOrderProtocol
+          file: ./abis/LimitOrderProtocol.json
+      eventHandlers:
+        - event: NonceIncreased(indexed address,uint256)
+          handler: handleNonceIncreased
+        - event: OrderFilled(indexed address,bytes32,uint256)
+          handler: handleOrderFilled
+        - event: OrderFilledRFQ(bytes32,uint256)
+          handler: handleOrderFilledRFQ
+      file: ./src/limit-order-protocol.ts
+  - kind: ethereum
+    name: SwapTracker
+    network: mainnet
+    source:
+      abi: OneInchToken
+      startBlock: 19212918
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Swap
+        - User
+        - Token
+        - DailyStats
+      abis:
+        - name: OneInchToken
+          file: ./abis/OneInchToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/swap-tracker.ts
+  - kind: ethereum
+    name: FeeCollector
+    network: mainnet
+    source:
+      address: "0x1111111254EEB25477B68fb85Ed929f73A960582"
+      abi: FeeCollector
+      startBlock: 15894742
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - FeeCollectorApproval
+        - FeeCollectorOwnershipTransferred
+        - FeeCollectorTransfer
+      abis:
+        - name: FeeCollector
+          file: ./abis/FeeCollector.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/fee-collector.ts
+  - kind: ethereum
+    name: Executor
+    network: mainnet
+    source:
+      address: "0x1111111254EEB25477B68fb85Ed929f73A960582"
+      abi: Executor
+      startBlock: 15894742
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ExecutorApproval
+        - ExecutorOwnershipTransferred
+        - ExecutorTransfer
+      abis:
+        - name: Executor
+          file: ./abis/Executor.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/executor.ts
+  - kind: ethereum
+    name: SwapExecutor
+    network: mainnet
+    source:
+      address: "0x1111111254EEB25477B68fb85Ed929f73A960582"
+      abi: SwapExecutor
+      startBlock: 15894742
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - SwapExecutorApproval
+        - SwapExecutorOwnershipTransferred
+        - SwapExecutorTransfer
+      abis:
+        - name: SwapExecutor
+          file: ./abis/SwapExecutor.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/swap-executor.ts
