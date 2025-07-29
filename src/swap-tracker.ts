@@ -1,5 +1,5 @@
 import { Transfer as TransferEvent } from "../generated/OneInchToken/OneInchToken"
-import { User, Token, DailyStats } from "../generated/schema"
+import { Swap, User, Token, DailyStats } from "../generated/schema"
 import { BigInt, Bytes, Address } from "@graphprotocol/graph-ts"
 
 // AggregationRouterV6 contract address
@@ -107,9 +107,20 @@ export function handleTransfer(event: TransferEvent): void {
 
 // Create a Swap entity from input/output transfer pair
 function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent): void {
-  // For now, we'll just update the analytics without creating Swap entities
-  // since the Swap entity isn't generated yet
+  // Create the Swap entity
+  let swapId = inputEvent.transaction.hash.concatI32(inputEvent.logIndex.toI32())
+  let swap = new Swap(swapId)
   
+  swap.user = inputEvent.params.from
+  swap.inputToken = inputEvent.address
+  swap.outputToken = outputEvent.address
+  swap.inputAmount = inputEvent.params.value
+  swap.outputAmount = outputEvent.params.value
+  swap.blockNumber = inputEvent.block.number
+  swap.blockTimestamp = inputEvent.block.timestamp
+  swap.transactionHash = inputEvent.transaction.hash
+
+  // Update analytics entities and set relationships
   let user = getOrCreateUser(inputEvent.params.from)
   if (user.firstSeen == BigInt.fromI32(0)) {
     user.firstSeen = inputEvent.block.timestamp
@@ -117,11 +128,12 @@ function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent)
   user.lastSeen = inputEvent.block.timestamp
   user.totalSwaps = user.totalSwaps.plus(BigInt.fromI32(1))
   user.totalVolume = user.totalVolume.plus(inputEvent.params.value)
+  user.swapCount = user.swapCount.plus(BigInt.fromI32(1))
   user.save()
 
   let inputToken = getOrCreateToken(inputEvent.address)
   inputToken.save()
-
+  
   let outputToken = getOrCreateToken(outputEvent.address)
   outputToken.save()
 
@@ -130,4 +142,12 @@ function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent)
   dailyStats.swapCount = dailyStats.swapCount.plus(BigInt.fromI32(1))
   dailyStats.uniqueUsers = dailyStats.uniqueUsers.plus(BigInt.fromI32(1))
   dailyStats.save()
+
+  // Set relationships
+  swap.userEntity = user.id
+  swap.inputTokenInfo = inputToken.id
+  swap.outputTokenInfo = outputToken.id
+  swap.dailyStats = dailyStats.id
+  
+  swap.save()
 } 
