@@ -1,0 +1,198 @@
+# Core Events - Immutable for performance
+type Swapped @entity(immutable: true) {
+  id: Bytes!
+  sender: Bytes! # address
+  srcReceiver: Bytes! # address
+  dstReceiver: Bytes! # address
+  srcToken: Bytes! # address
+  dstToken: Bytes! # address
+  amount: BigInt! # uint256
+  amountReceived: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  
+  # Relationships using @derivedFrom instead of arrays
+  user: User! # Relationship to user analytics
+  srcTokenInfo: Token! # Relationship to token metadata
+  dstTokenInfo: Token! # Relationship to token metadata
+  dailyStats: DailyStats! # Relationship to daily analytics
+}
+
+# User Analytics - Mutable for aggregations
+type User @entity {
+  id: Bytes! # user address
+  totalSwaps: BigInt!
+  totalVolume: BigInt!
+  firstSeen: BigInt!
+  lastSeen: BigInt!
+  
+  # Derived relationships - no large arrays!
+  swaps: [Swapped!]! @derivedFrom(field: "user")
+  approvals: [Approval!]! @derivedFrom(field: "user")
+  transfersFrom: [Transfer!]! @derivedFrom(field: "fromUser")
+  transfersTo: [Transfer!]! @derivedFrom(field: "toUser")
+}
+
+# Token Metadata - Mutable for updates
+type Token @entity {
+  id: Bytes! # token address
+  symbol: String
+  name: String
+  decimals: Int
+  totalSupply: BigInt
+  
+  # Derived relationships
+  swapsAsSrc: [Swapped!]! @derivedFrom(field: "srcTokenInfo")
+  swapsAsDst: [Swapped!]! @derivedFrom(field: "dstTokenInfo")
+  transfers: [Transfer!]! @derivedFrom(field: "token")
+  approvals: [Approval!]! @derivedFrom(field: "token")
+}
+
+# Daily Analytics - Mutable for aggregations
+type DailyStats @entity {
+  id: String! # date string (YYYY-MM-DD)
+  date: BigInt!
+  totalVolume: BigInt!
+  swapCount: BigInt!
+  uniqueUsers: BigInt!
+  
+  # Derived relationships
+  swaps: [Swapped!]! @derivedFrom(field: "dailyStats")
+}
+
+# Existing Events with Enhanced Relationships
+type BitInvalidatorUpdated @entity(immutable: true) {
+  id: Bytes!
+  maker: Bytes! # address
+  slotIndex: BigInt! # uint256
+  slotValue: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type EIP712DomainChanged @entity(immutable: true) {
+  id: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type EpochIncreased @entity(immutable: true) {
+  id: Bytes!
+  maker: Bytes! # address
+  series: BigInt! # uint256
+  newEpoch: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OrderCancelled @entity(immutable: true) {
+  id: Bytes!
+  orderHash: Bytes! # bytes32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OrderFilled @entity(immutable: true) {
+  id: Bytes!
+  orderHash: Bytes! # bytes32
+  remainingAmount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Paused @entity(immutable: true) {
+  id: Bytes!
+  account: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Unpaused @entity(immutable: true) {
+  id: Bytes!
+  account: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Approval @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  spender: Bytes! # address
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  
+  # Relationships
+  token: Token!
+  user: User!
+}
+
+type OneInchTokenOwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Transfer @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  
+  # Relationships
+  token: Token!
+  fromUser: User!
+  toUser: User!
+}
+
+type NonceIncreased @entity(immutable: true) {
+  id: Bytes!
+  maker: Bytes! # address
+  newNonce: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type LimitOrderProtocolOrderFilled @entity(immutable: true) {
+  id: Bytes!
+  maker: Bytes! # address
+  orderHash: Bytes! # bytes32
+  remaining: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OrderFilledRFQ @entity(immutable: true) {
+  id: Bytes!
+  orderHash: Bytes! # bytes32
+  makingAmount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
