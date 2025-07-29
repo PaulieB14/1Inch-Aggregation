@@ -2,27 +2,23 @@
 
 A comprehensive subgraph for tracking 1inch protocol activity on Ethereum mainnet, including swap events, user analytics, token metadata, and daily statistics.
 
-## 🚀 Live Subgraph
+## Live Subgraph
 
 **Graph Studio URL**: https://thegraph.com/studio/subgraph/1-inch-aggregation  
 **Query Endpoint**: https://api.studio.thegraph.com/query/111767/1-inch-aggregation/0.0.8
 
-## 📊 Entity Relationship Diagram
+## Entity Relationship Diagram
 
 ```mermaid
 graph TD
-    %% Core Events
-    Swapped[Swapped Event<br/>Direct from AggregationRouterV6]
-    Swap[Swap Entity<br/>Derived from Transfer pairs]
-    Transfer[Transfer Event<br/>All ERC20 transfers]
-    Approval[Approval Event<br/>ERC20 approvals]
+    Swapped[Swapped Event]
+    Swap[Swap Entity]
+    Transfer[Transfer Event]
+    Approval[Approval Event]
+    User[User Analytics]
+    Token[Token Metadata]
+    DailyStats[Daily Statistics]
     
-    %% Analytics Entities
-    User[User Analytics<br/>Address-based metrics]
-    Token[Token Metadata<br/>Symbol, name, decimals]
-    DailyStats[Daily Statistics<br/>Volume, counts, users]
-    
-    %% Relationships
     Swapped --> User
     Swapped --> Token
     Swapped --> DailyStats
@@ -37,46 +33,39 @@ graph TD
     Approval --> User
     Approval --> Token
     
-    %% Derived Relationships
-    User -.->|@derivedFrom| Swapped
-    User -.->|@derivedFrom| Swap
-    User -.->|@derivedFrom| Transfer
-    User -.->|@derivedFrom| Approval
+    User -.-> Swapped
+    User -.-> Swap
+    User -.-> Transfer
+    User -.-> Approval
     
-    Token -.->|@derivedFrom| Swapped
-    Token -.->|@derivedFrom| Swap
-    Token -.->|@derivedFrom| Transfer
-    Token -.->|@derivedFrom| Approval
+    Token -.-> Swapped
+    Token -.-> Swap
+    Token -.-> Transfer
+    Token -.-> Approval
     
-    DailyStats -.->|@derivedFrom| Swapped
-    DailyStats -.->|@derivedFrom| Swap
-    
-    style Swapped fill:#e1f5fe
-    style Swap fill:#f3e5f5
-    style User fill:#e8f5e8
-    style Token fill:#fff3e0
-    style DailyStats fill:#fce4ec
+    DailyStats -.-> Swapped
+    DailyStats -.-> Swap
 ```
 
-## 🏗️ Architecture
+## Architecture
 
 ### Data Sources
-1. **AggregationRouterV6** (`0x111111125421cA6dc452d289314280a0f8842A65`)
+1. **AggregationRouterV6** (0x111111125421cA6dc452d289314280a0f8842A65)
    - Core 1inch aggregation contract
-   - Tracks `Swapped` events directly
+   - Tracks Swapped events directly
    - Start block: 19212918
 
-2. **1INCH Token** (`0x111111111117dC0aa78b770fA6A738034120C302`)
+2. **1INCH Token** (0x111111111117dC0aa78b770fA6A738034120C302)
    - Governance token transfers and approvals
    - Used for token analytics
 
-3. **LimitOrderProtocol** (`0x1111111254EEB25477B68fb85Ed929f73A960582`)
+3. **LimitOrderProtocol** (0x1111111254EEB25477B68fb85Ed929f73A960582)
    - Limit order fills and cancellations
    - Optional analytics
 
 4. **SwapTracker** (Generic ERC20)
    - Tracks all transfer events
-   - Derives `Swap` entities from transfer pairs
+   - Derives Swap entities from transfer pairs
    - Identifies complete swaps via router interactions
 
 ### Entity Types
@@ -93,7 +82,7 @@ graph TD
 - **DailyStats**: Daily aggregated statistics
 - **Swap**: Enhanced swap entities derived from transfer pairs
 
-## 🛠️ Setup & Deployment
+## Setup & Deployment
 
 ### Prerequisites
 - Node.js 18+
@@ -124,7 +113,7 @@ graph deploy 1-inch-aggregation
 - **Spec Version**: 1.0.0
 - **API Version**: 0.0.7
 
-## 📈 Query Examples
+## Query Examples
 
 ### Get Recent Swaps
 ```graphql
@@ -184,11 +173,11 @@ graph deploy 1-inch-aggregation
 }
 ```
 
-## 🔍 Key Features
+## Key Features
 
 ### Swap Detection
-- **Direct Events**: Captures `Swapped` events from AggregationRouterV6
-- **Derived Swaps**: Creates `Swap` entities from transfer pairs to/from router
+- **Direct Events**: Captures Swapped events from AggregationRouterV6
+- **Derived Swaps**: Creates Swap entities from transfer pairs to/from router
 - **Complete Tracking**: Both input and output transfers for full swap context
 
 ### Analytics
@@ -201,16 +190,16 @@ graph deploy 1-inch-aggregation
 - **Immutable Events**: Core events are immutable for performance
 - **Efficient Indexing**: Optimized for high-volume data processing
 
-## 📊 Current Status
+## Current Status
 
 - **Version**: 0.0.8
-- **Status**: ✅ Active and indexing
+- **Status**: Active and indexing
 - **Current Block**: 19214009+
 - **Entities**: 2,000+ and growing
 - **Data Sources**: 4 contracts tracked
 - **Events**: Transfer, Approval, Swapped, OrderFilled
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -218,11 +207,11 @@ graph deploy 1-inch-aggregation
 4. Test with `graph build`
 5. Submit a pull request
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details
 
-## 🔗 Links
+## Links
 
 - [1inch Protocol Documentation](https://docs.1inch.io/)
 - [The Graph Documentation](https://thegraph.com/docs/)
