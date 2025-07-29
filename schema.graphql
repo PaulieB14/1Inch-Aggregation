@@ -26,9 +26,11 @@ type User @entity {
   totalVolume: BigInt!
   firstSeen: BigInt!
   lastSeen: BigInt!
+  swapCount: BigInt!
   
   # Derived relationships - no large arrays!
   swaps: [Swapped!]! @derivedFrom(field: "user")
+  swapEvents: [Swap!]! @derivedFrom(field: "userEntity")
   approvals: [Approval!]! @derivedFrom(field: "user")
   transfersFrom: [Transfer!]! @derivedFrom(field: "fromUser")
   transfersTo: [Transfer!]! @derivedFrom(field: "toUser")
@@ -41,10 +43,14 @@ type Token @entity {
   name: String
   decimals: Int
   totalSupply: BigInt
+  transferCount: BigInt!
+  approvalCount: BigInt!
   
   # Derived relationships
   swapsAsSrc: [Swapped!]! @derivedFrom(field: "srcTokenInfo")
   swapsAsDst: [Swapped!]! @derivedFrom(field: "dstTokenInfo")
+  swapsAsInput: [Swap!]! @derivedFrom(field: "inputTokenInfo")
+  swapsAsOutput: [Swap!]! @derivedFrom(field: "outputTokenInfo")
   transfers: [Transfer!]! @derivedFrom(field: "token")
   approvals: [Approval!]! @derivedFrom(field: "token")
 }
@@ -59,6 +65,7 @@ type DailyStats @entity {
   
   # Derived relationships
   swaps: [Swapped!]! @derivedFrom(field: "dailyStats")
+  swapEvents: [Swap!]! @derivedFrom(field: "dailyStats")
 }
 
 # Existing Events with Enhanced Relationships
@@ -195,4 +202,23 @@ type OrderFilledRFQ @entity(immutable: true) {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+}
+
+# Enhanced Swap entity for easier querying - combines input/output transfers
+type Swap @entity {
+  id: Bytes! # transaction hash + log index
+  user: Bytes! # address that initiated the swap
+  inputToken: Bytes! # token address being swapped from
+  outputToken: Bytes! # token address being swapped to
+  inputAmount: BigInt! # amount of input token
+  outputAmount: BigInt! # amount of output token
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  
+  # Analytics relationships
+  userEntity: User! # Relationship to User entity
+  inputTokenInfo: Token! # Relationship to Token entity
+  outputTokenInfo: Token! # Relationship to Token entity
+  dailyStats: DailyStats! # Relationship to DailyStats entity
 }

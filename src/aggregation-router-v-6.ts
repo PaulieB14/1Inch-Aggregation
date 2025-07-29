@@ -34,6 +34,7 @@ function getOrCreateUser(address: Bytes): User {
     user.totalVolume = BigInt.fromI32(0)
     user.firstSeen = BigInt.fromI32(0)
     user.lastSeen = BigInt.fromI32(0)
+    user.swapCount = BigInt.fromI32(0)
   }
   return user
 }
@@ -47,6 +48,8 @@ function getOrCreateToken(address: Bytes): Token {
     token.name = ""
     token.decimals = 0
     token.totalSupply = BigInt.fromI32(0)
+    token.transferCount = BigInt.fromI32(0)
+    token.approvalCount = BigInt.fromI32(0)
   }
   return token
 }

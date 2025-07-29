@@ -10,7 +10,7 @@ dataSources:
     source:
       address: "0x111111125421cA6dc452d289314280a0f8842A65"
       abi: AggregationRouterV6
-      startBlock: 11511393
+      startBlock: 19212918
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -25,6 +25,7 @@ dataSources:
         - Paused
         - Unpaused
         - Swapped
+        - Swap
       abis:
         - name: AggregationRouterV6
           file: ./abis/AggregationRouterV6.json
@@ -54,7 +55,7 @@ dataSources:
     source:
       address: "0x111111111117dC0aa78b770fA6A738034120C302"
       abi: OneInchToken
-      startBlock: 11511393
+      startBlock: 19212918
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -80,7 +81,7 @@ dataSources:
     source:
       address: "0x3ef51736315F52d568d6D2cf289419b9CfffE782"
       abi: LimitOrderProtocol
-      startBlock: 11511393
+      startBlock: 19212918
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -100,3 +101,25 @@ dataSources:
         - event: OrderFilledRFQ(bytes32,uint256)
           handler: handleOrderFilledRFQ
       file: ./src/limit-order-protocol.ts
+  - kind: ethereum
+    name: SwapTracker
+    network: mainnet
+    source:
+      abi: OneInchToken
+      startBlock: 19212918
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Swap
+        - User
+        - Token
+        - DailyStats
+      abis:
+        - name: OneInchToken
+          file: ./abis/OneInchToken.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+      file: ./src/swap-tracker.ts
