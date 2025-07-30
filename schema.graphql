@@ -1,23 +1,4 @@
 # Core Events - Immutable for performance
-type Swapped @entity(immutable: true) {
-  id: Bytes!
-  sender: Bytes! # address
-  srcReceiver: Bytes! # address
-  dstReceiver: Bytes! # address
-  srcToken: Bytes! # address
-  dstToken: Bytes! # address
-  amount: BigInt! # uint256
-  amountReceived: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-  
-  # Relationships using @derivedFrom instead of arrays
-  user: User! # Relationship to user analytics
-  srcTokenInfo: Token! # Relationship to token metadata
-  dstTokenInfo: Token! # Relationship to token metadata
-  dailyStats: DailyStats! # Relationship to daily analytics
-}
 
 # User Analytics - Mutable for aggregations
 type User @entity {
@@ -29,7 +10,7 @@ type User @entity {
   swapCount: BigInt!
   
   # Derived relationships - no large arrays!
-  swaps: [Swapped!]! @derivedFrom(field: "user")
+  swaps: [Swap!]! @derivedFrom(field: "userEntity")
   swapEvents: [Swap!]! @derivedFrom(field: "userEntity")
   approvals: [Approval!]! @derivedFrom(field: "user")
   transfersFrom: [Transfer!]! @derivedFrom(field: "fromUser")
@@ -47,8 +28,6 @@ type Token @entity {
   approvalCount: BigInt!
   
   # Derived relationships
-  swapsAsSrc: [Swapped!]! @derivedFrom(field: "srcTokenInfo")
-  swapsAsDst: [Swapped!]! @derivedFrom(field: "dstTokenInfo")
   swapsAsInput: [Swap!]! @derivedFrom(field: "inputTokenInfo")
   swapsAsOutput: [Swap!]! @derivedFrom(field: "outputTokenInfo")
   transfers: [Transfer!]! @derivedFrom(field: "token")
@@ -64,7 +43,7 @@ type DailyStats @entity {
   uniqueUsers: BigInt!
   
   # Derived relationships
-  swaps: [Swapped!]! @derivedFrom(field: "dailyStats")
+  swaps: [Swap!]! @derivedFrom(field: "dailyStats")
   swapEvents: [Swap!]! @derivedFrom(field: "dailyStats")
 }
 

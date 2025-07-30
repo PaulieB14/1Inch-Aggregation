@@ -222,6 +222,19 @@
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {"indexed": false, "internalType": "address", "name": "sender", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "srcReceiver", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "dstReceiver", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "srcToken", "type": "address"},
+      {"indexed": false, "internalType": "address", "name": "dstToken", "type": "address"},
+      {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
+      {"indexed": false, "internalType": "uint256", "name": "amountReceived", "type": "uint256"}
+    ],
+    "name": "Swapped",
+    "type": "event"  },
+  {
     "inputs": [
       { "internalType": "uint96", "name": "series", "type": "uint96" },
       { "internalType": "uint256", "name": "amount", "type": "uint256" }

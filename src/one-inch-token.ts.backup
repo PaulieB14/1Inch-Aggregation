@@ -1,12 +1,14 @@
 import { Transfer as TransferEvent } from "../generated/OneInchToken/OneInchToken"
-import { Approval as ApprovalEvent } from "../generated/OneInchToken/OneInchToken"
-import { OwnershipTransferred as OwnershipTransferredEvent } from "../generated/OneInchToken/OneInchToken"
-import { Transfer, Approval, OneInchTokenOwnershipTransferred, User, Token, Swap, DailyStats } from "../generated/schema"
+import { Swap, User, Token, DailyStats } from "../generated/schema"
 import { BigInt, Bytes, Address } from "@graphprotocol/graph-ts"
 
+// AggregationRouterV6 contract address
 const AGGREGATION_ROUTER = "0x111111125421cA6dc452d289314280a0f8842A65"
+
+// Store pending input transfers (to router) to pair with output transfers (from router)
 let pendingInputs = new Map<string, TransferEvent>()
 
+// Helper function to get or create a User entity
 export function getOrCreateUser(address: Bytes): User {
   let user = User.load(address)
   if (!user) {
@@ -21,6 +23,7 @@ export function getOrCreateUser(address: Bytes): User {
   return user
 }
 
+// Helper function to get or create a Token entity
 export function getOrCreateToken(address: Bytes): Token {
   let token = Token.load(address)
   if (!token) {
@@ -36,6 +39,7 @@ export function getOrCreateToken(address: Bytes): Token {
   return token
 }
 
+// Helper function to get or create DailyStats entity
 export function getOrCreateDailyStats(timestamp: BigInt): DailyStats {
   let dayStartTimestamp = timestamp.div(BigInt.fromI32(86400)).times(BigInt.fromI32(86400))
   let dayId = dayStartTimestamp.toString()
@@ -52,6 +56,7 @@ export function getOrCreateDailyStats(timestamp: BigInt): DailyStats {
   return dailyStats
 }
 
+// Handle Transfer events from any contract
 export function handleTransfer(event: TransferEvent): void {
   let from = event.params.from
   let to = event.params.to
@@ -61,40 +66,25 @@ export function handleTransfer(event: TransferEvent): void {
   let blockNumber = event.block.number
   let timestamp = event.block.timestamp
 
-  // SWAP DETECTION LOGIC
   // Check if this is a transfer TO the AggregationRouterV6 (input)
   if (to.toHexString().toLowerCase() == AGGREGATION_ROUTER.toLowerCase()) {
     // Store this as a pending input transfer
     let inputKey = txHash.toHexString() + "-" + from.toHexString()
     pendingInputs.set(inputKey, event)
   }
-
+  
   // Check if this is a transfer FROM the AggregationRouterV6 (output)
   if (from.toHexString().toLowerCase() == AGGREGATION_ROUTER.toLowerCase()) {
     // Look for a matching input transfer
     let inputKey = txHash.toHexString() + "-" + to.toHexString()
     let inputEvent = pendingInputs.get(inputKey)
-
+    
     if (inputEvent) {
-      // We found a matching input/output pair - create a Swap entity!
+      // We found a matching input/output pair - create a Swap entity
       createSwapEntity(inputEvent, event)
       pendingInputs.delete(inputKey)
     }
   }
-
-  // Create Transfer entity
-  let entity = new Transfer(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.from = from
-  entity.to = to
-  entity.value = value
-  entity.blockNumber = blockNumber
-  entity.blockTimestamp = timestamp
-  entity.transactionHash = txHash
-  entity.token = token
-  entity.fromUser = from
-  entity.toUser = to
 
   // Update User and Token entities
   let fromUser = getOrCreateUser(from)
@@ -112,10 +102,7 @@ export function handleTransfer(event: TransferEvent): void {
   toUser.save()
 
   let tokenEntity = getOrCreateToken(token)
-  tokenEntity.transferCount = tokenEntity.transferCount.plus(BigInt.fromI32(1))
   tokenEntity.save()
-
-  entity.save()
 }
 
 // Create a Swap entity from input/output transfer pair
@@ -123,7 +110,7 @@ function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent)
   // Create the Swap entity
   let swapId = inputEvent.transaction.hash.concatI32(inputEvent.logIndex.toI32())
   let swap = new Swap(swapId)
-
+  
   swap.user = inputEvent.params.from
   swap.inputToken = inputEvent.address
   swap.outputToken = outputEvent.address
@@ -146,6 +133,7 @@ function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent)
 
   let inputToken = getOrCreateToken(inputEvent.address)
   inputToken.save()
+  
   let outputToken = getOrCreateToken(outputEvent.address)
   outputToken.save()
 
@@ -160,54 +148,6 @@ function createSwapEntity(inputEvent: TransferEvent, outputEvent: TransferEvent)
   swap.inputTokenInfo = inputToken.id
   swap.outputTokenInfo = outputToken.id
   swap.dailyStats = dailyStats.id
-
+  
   swap.save()
-}
-
-export function handleApproval(event: ApprovalEvent): void {
-  let entity = new Approval(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-  entity.value = event.params.value
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-  entity.token = event.address
-  entity.user = event.params.owner
-
-  // Update User and Token entities
-  let owner = getOrCreateUser(event.params.owner)
-  if (owner.firstSeen == BigInt.fromI32(0)) {
-    owner.firstSeen = event.block.timestamp
-  }
-  owner.lastSeen = event.block.timestamp
-  owner.save()
-
-  let spender = getOrCreateUser(event.params.spender)
-  if (spender.firstSeen == BigInt.fromI32(0)) {
-    spender.firstSeen = event.block.timestamp
-  }
-  spender.lastSeen = event.block.timestamp
-  spender.save()
-
-  let tokenEntity = getOrCreateToken(event.address)
-  tokenEntity.approvalCount = tokenEntity.approvalCount.plus(BigInt.fromI32(1))
-  tokenEntity.save()
-
-  entity.save()
-}
-
-export function handleOwnershipTransferred(event: OwnershipTransferredEvent): void {
-  let entity = new OneInchTokenOwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.previousOwner = event.params.previousOwner
-  entity.newOwner = event.params.newOwner
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
+} 
